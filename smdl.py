@@ -18,8 +18,12 @@ parser.add_argument("-o", "--output", default="output/",
                     help="output directory")
 parser.add_argument(
     "--albums", help="specific album names to download, split by $. Defaults to all. Wrap in single quotes to avoid shell variable substitutions. (e.g. --albums 'Title 1$Title 2$Title 3')")
+parser.add_argument(
+    "--folders", help="specific folders names to download, split by $. Defaults to all. Wrap in single quotes to avoid shell variable substitutions. (e.g. --folders 'Title 1$Title 2$Title 3')")
 
 args = parser.parse_args()
+
+# print(args)
 
 endpoint = "https://www.smugmug.com"
 
@@ -36,6 +40,10 @@ else:
 
 if args.albums:
     specificAlbums = [x.strip() for x in args.albums.split('$')]
+
+if args.folders:
+    specificFolders = [x.strip() for x in args.folders.split('$')]
+    # print(specificFolders)
 
 
 # Gets the JSON output from an API call
@@ -70,15 +78,18 @@ try:
     albums["Response"]["AlbumList"]
 except KeyError:
     sys.exit("No albums were found for the user %s. The user may not exist or may be password protected." % args.user)
-
+# print(albums["Response"]["AlbumList"])
 # Create output directories
 print("Creating output directories...", end="")
 for album in albums["Response"]["AlbumList"]:
     if args.albums:
         if album["Name"].strip() not in specificAlbums:
             continue
+    if args.folders:
+        if not any(ext in album["UrlPath"].split('/') for ext in specificFolders):
+            continue
 
-    directory = output_dir + album["UrlPath"][1:]
+    directory = output_dir + album["UrlPath"][1:] ##folder names here!
     if not os.path.exists(directory):
         os.makedirs(directory)
 print("done.")
@@ -95,6 +106,9 @@ for album in tqdm(albums["Response"]["AlbumList"], position=0, leave=True, bar_f
                   desc=f"{fg('yellow')}{attr('bold')}{format_label('All Albums')}{attr('reset')}"):
     if args.albums:
         if album["Name"].strip() not in specificAlbums:
+            continue
+    if args.folders:
+        if not any(ext in album["UrlPath"].split('/') for ext in specificFolders):
             continue
 
     album_path = output_dir + album["UrlPath"][1:]
