@@ -83,7 +83,7 @@ except KeyError:
 print("Creating output directories...", end="")
 for album in albums["Response"]["AlbumList"]:
     if args.albums:
-        if album["Name"].strip() not in specificAlbums:
+        if not any(ext in album["UrlPath"].split('/') for ext in specificAlbums):
             continue
     if args.folders:
         if not any(ext in album["UrlPath"].split('/') for ext in specificFolders):
@@ -105,7 +105,7 @@ bar_format = '{l_bar}{bar:-2}| {n_fmt:>3}/{total_fmt:<3}'
 for album in tqdm(albums["Response"]["AlbumList"], position=0, leave=True, bar_format=bar_format,
                   desc=f"{fg('yellow')}{attr('bold')}{format_label('All Albums')}{attr('reset')}"):
     if args.albums:
-        if album["Name"].strip() not in specificAlbums:
+        if not any(ext in album["UrlPath"].split('/') for ext in specificAlbums):
             continue
     if args.folders:
         if not any(ext in album["UrlPath"].split('/') for ext in specificFolders):
