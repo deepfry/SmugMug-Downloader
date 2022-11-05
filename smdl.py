@@ -20,6 +20,8 @@ parser.add_argument(
     "--albums", help="specific album names to download, split by $. Defaults to all. Wrap in single quotes to avoid shell variable substitutions. (e.g. --albums 'Title 1$Title 2$Title 3')")
 parser.add_argument(
     "--folders", help="specific folders names to download, split by $. Defaults to all. Wrap in single quotes to avoid shell variable substitutions. (e.g. --folders 'Title 1$Title 2$Title 3')")
+parser.add_argument(
+    "--contains", help="specific URL keywords to download, split by $. Defaults to all. Wrap in single quotes to avoid shell variable substitutions. (e.g. --contains 'Term 1$Term 2$Term 3')")
 
 args = parser.parse_args()
 
@@ -43,6 +45,9 @@ if args.albums:
 
 if args.folders:
     specificFolders = [x.strip() for x in args.folders.split('$')]
+
+if args.contains:
+    specificTerms = [x.strip() for x in args.contains.upper().split('$')]
     # print(specificFolders)
 
 
@@ -88,12 +93,15 @@ for album in albums["Response"]["AlbumList"]:
     if args.folders:
         if not any(ext in album["UrlPath"].split('/') for ext in specificFolders):
             continue
+    if args.contains:
+        #print(not [s for s in album["UrlPath"].upper().split('/') if any(xs in s for xs in specificTerms)])
+        if not [s for s in album["UrlPath"].upper().split('/') if any(xs in s for xs in specificTerms)]:
+            continue
 
     directory = output_dir + album["UrlPath"][1:] ##folder names here!
     if not os.path.exists(directory):
         os.makedirs(directory)
 print("done.")
-
 
 def format_label(s, width=24):
     return s[:width].ljust(width)
@@ -109,6 +117,10 @@ for album in tqdm(albums["Response"]["AlbumList"], position=0, leave=True, bar_f
             continue
     if args.folders:
         if not any(ext in album["UrlPath"].split('/') for ext in specificFolders):
+            continue
+    if args.contains:
+        #print(not [s for s in album["UrlPath"].upper().split('/') if any(xs in s for xs in specificTerms)])
+        if not [s for s in album["UrlPath"].upper().split('/') if any(xs in s for xs in specificTerms)]:
             continue
 
     album_path = output_dir + album["UrlPath"][1:]
